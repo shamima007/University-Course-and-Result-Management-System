@@ -1,0 +1,132 @@
+@using CourseResultMVCWebApp.Models
+
+@{
+    ViewBag.Title = "EnrollCourse";
+    List<Student> students = ViewBag.Students;
+}
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EnrollCourse" }))
+{
+
+    <div>
+        <legend>Enroll Course</legend>
+
+        <div class="form-group">
+
+            <label for="studentId">Student Reg. No. :</label>
+            <select id="studentId" name="studentId" class="form-control" style="width: 273px;">
+                <option selected disabled>--Select Student--</option>
+                @foreach (Student aStudent in students)
+                {
+                    <option value="@aStudent.Id">@aStudent.RegNo</option>
+                }
+
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="Name">Name :</label>
+            <input class="form-control" type="text" id="Name" name="Name" disabled="disabled" />
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="Email">Email :</label>
+            <input class="form-control" type="text" id="Email" name="Email" disabled="disabled" />
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="Department">Department</label>
+            <input class="form-control" id="Department" name="Department" type="text" value="" disabled="disabled" />
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="CourseId">Select Course :</label>
+            <select class="form-control disabled" id="CourseId" name="CourseId"></select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="Date">Date :</label>
+            <input class="form-control" type="Date" id="Date" name="Date" />
+
+        </div>
+
+
+
+
+        <button type="submit" class="btn btn-primary" value="EnrollCourse" style="width: 100px;">Enroll</button>
+        <br />
+        <div style="color: green"> @ViewBag.Message</div>
+    </div>
+}
+
+@section scripts{
+    <script src="~/Scripts/jquery-3.1.0.js"></script>
+    <script src="~/Scripts/jquery.validate.js"></script>
+
+    <script>
+    $(document).ready(function () {
+        $("#EnrollCourse").validate({
+            rules: {
+                studentId: "required",
+                CourseId: "required",
+                Date: "required"
+            },
+            messages: {
+                studentId: "Please select a registration number",
+                CourseId: "Please select a course",
+                Date:"Please select a date"
+            }
+        });
+    });
+    </script>
+
+
+
+
+    <script>
+        $(function() {
+            $('#studentId').on('change', function() {
+                var studentId = $('#studentId').val();
+                $("#CourseId").empty();
+                var json = { studentId: studentId };
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("GetStudentByRegNo", "EnrollCourse")',
+                    contentType: 'application/json',
+                    data: JSON.stringify(json),
+                    success: function(response) {
+                        $('#Name').val(response.Name);
+                        $('#Email').val(response.Email);
+                        $('#Department').val(response.Department);
+                    }
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("GetCourseByStudentId","EnrollCourse")',
+                    contentType: 'application/json',
+                    data: JSON.stringify(json),
+                    success: function (data) {
+                        $("#CourseId").append('<option value="">--Select a Course--</option>');
+                        $.each(data, function (key, value) {
+                            $("#CourseId").append('<option value=' + value.Id + '>' + value.Code + '</option>');
+                        });
+                    }
+                });
+
+
+            });
+
+        });
+    </script>
+
+
+}
